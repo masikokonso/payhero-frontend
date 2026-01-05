@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PayHero Payment System</title>
+    <title>PayHero Payment Test</title>
     <style>
         * {
             margin: 0;
@@ -25,7 +25,7 @@
             background: white;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-width: 600px;
+            max-width: 500px;
             width: 100%;
             padding: 40px;
         }
@@ -40,37 +40,6 @@
             color: #666;
             margin-bottom: 30px;
             font-size: 14px;
-        }
-        
-        .tabs {
-            display: flex;
-            border-bottom: 2px solid #e0e0e0;
-            margin-bottom: 20px;
-        }
-        
-        .tab {
-            padding: 10px 20px;
-            cursor: pointer;
-            border: none;
-            background: none;
-            color: #666;
-            font-size: 14px;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-        
-        .tab.active {
-            color: #667eea;
-            border-bottom: 3px solid #667eea;
-            margin-bottom: -2px;
-        }
-        
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
         }
         
         .form-group {
@@ -152,12 +121,6 @@
             border: 2px solid #bee5eb;
         }
         
-        .status.warning {
-            background: #fff3cd;
-            color: #856404;
-            border: 2px solid #ffeaa7;
-        }
-        
         .loader {
             display: none;
             margin-top: 10px;
@@ -179,419 +142,94 @@
             100% { transform: rotate(360deg); }
         }
         
-        .progress-bar {
-            width: 100%;
-            height: 6px;
-            background: #e0e0e0;
-            border-radius: 3px;
-            margin-top: 15px;
-            overflow: hidden;
-            display: none;
-        }
-        
-        .progress-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-            width: 0%;
-            transition: width 0.3s ease;
-        }
-        
-        .timer {
-            text-align: center;
-            color: #666;
-            font-size: 13px;
-            margin-top: 10px;
-            font-weight: 600;
-        }
-        
         .check-status-btn {
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             margin-top: 10px;
-        }
-        
-        .new-payment-btn {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-            margin-top: 10px;
-        }
-        
-        .pending-payment {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            border-left: 4px solid #667eea;
-        }
-        
-        .pending-payment.completed {
-            border-left-color: #28a745;
-            background: #d4edda;
-        }
-        
-        .pending-payment.failed {
-            border-left-color: #dc3545;
-            background: #f8d7da;
-        }
-        
-        .pending-payment-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-        
-        .pending-payment-title {
-            font-weight: 600;
-            color: #333;
-            font-size: 14px;
-        }
-        
-        .pending-payment-status {
-            font-size: 12px;
-            padding: 3px 8px;
-            border-radius: 5px;
-            font-weight: 600;
-        }
-        
-        .status-pending {
-            background: #fff3cd;
-            color: #856404;
-        }
-        
-        .status-completed {
-            background: #28a745;
-            color: white;
-        }
-        
-        .status-failed {
-            background: #dc3545;
-            color: white;
-        }
-        
-        .pending-payment-details {
-            font-size: 13px;
-            color: #666;
-            margin-bottom: 10px;
-        }
-        
-        .pending-payment-actions {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .small-btn {
-            flex: 1;
-            padding: 8px;
-            font-size: 13px;
-            border-radius: 5px;
-        }
-        
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: #999;
-        }
-        
-        .empty-state-icon {
-            font-size: 48px;
-            margin-bottom: 10px;
-        }
-        
-        .retry-info {
-            background: #e7f3ff;
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 10px;
-            font-size: 12px;
-            color: #0066cc;
-        }
-        
-        .network-status {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            margin-right: 5px;
-        }
-        
-        .network-status.online {
-            background: #28a745;
-        }
-        
-        .network-status.offline {
-            background: #dc3545;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>💳 PayHero Payment</h1>
-        <p class="subtitle">
-            <span class="network-status online" id="networkStatus"></span>
-            M-Pesa STK Push - Till 6253624
-        </p>
+        <p class="subtitle">Test M-Pesa STK Push Integration</p>
         
-        <!-- Tabs -->
-        <div class="tabs">
-            <button class="tab active" onclick="switchTab('payment')">New Payment</button>
-            <button class="tab" onclick="switchTab('pending')">
-                Pending (<span id="pendingCount">0</span>)
-            </button>
-        </div>
-        
-        <!-- Payment Tab -->
-        <div id="paymentTab" class="tab-content active">
-            <form id="paymentForm">
-                <div class="form-group">
-                    <label for="phone">Phone Number</label>
-                    <input 
-                        type="tel" 
-                        id="phone" 
-                        placeholder="0712345678 or 254712345678"
-                        required
-                    >
-                </div>
-                
-                <div class="form-group">
-                    <label for="amount">Amount (KES)</label>
-                    <input 
-                        type="number" 
-                        id="amount" 
-                        placeholder="100"
-                        min="1"
-                        required
-                    >
-                </div>
-                
-                <div class="form-group">
-                    <label for="description">Description</label>
-                    <input 
-                        type="text" 
-                        id="description" 
-                        placeholder="Payment for Order #123"
-                        value="Test Payment"
-                    >
-                </div>
-                
-                <button type="submit" id="payBtn">Send Payment Request</button>
-            </form>
-            
-            <div class="loader" id="loader">
-                <div class="spinner"></div>
-                <p style="margin-top: 10px; color: #666;">Processing...</p>
+        <form id="paymentForm">
+            <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <input 
+                    type="tel" 
+                    id="phone" 
+                    placeholder="0712345678 or 254712345678"
+                    required
+                >
             </div>
             
-            <div class="progress-bar" id="progressBar">
-                <div class="progress-bar-fill" id="progressBarFill"></div>
+            <div class="form-group">
+                <label for="amount">Amount (KES)</label>
+                <input 
+                    type="number" 
+                    id="amount" 
+                    placeholder="100"
+                    min="1"
+                    required
+                >
             </div>
             
-            <div class="timer" id="timer"></div>
+            <div class="form-group">
+                <label for="description">Description</label>
+                <input 
+                    type="text" 
+                    id="description" 
+                    placeholder="Payment for Order #123"
+                    value="Test Payment"
+                >
+            </div>
             
-            <div class="status" id="status"></div>
-            
-            <button class="check-status-btn" id="checkStatusBtn" style="display: none;">
-                Check Status Now
-            </button>
-            
-            <button class="new-payment-btn" id="newPaymentBtn" style="display: none;">
-                Make New Payment
-            </button>
+            <button type="submit" id="payBtn">Send Payment Request</button>
+        </form>
+        
+        <div class="loader" id="loader">
+            <div class="spinner"></div>
+            <p style="margin-top: 10px; color: #666;">Processing...</p>
         </div>
         
-        <!-- Pending Payments Tab -->
-        <div id="pendingTab" class="tab-content">
-            <div id="pendingList"></div>
-        </div>
+        <div class="status" id="status"></div>
+        
+        <button class="check-status-btn" id="checkStatusBtn" style="display: none;">
+            Check Payment Status
+        </button>
     </div>
 
     <script>
-        // ========================================
-        // CONFIGURATION
-        // ========================================
-        const API_URL = 'https://payhero-api.onrender.com';  // UPDATE THIS!
+        const API_URL = 'http://localhost:5000';
+        let currentTransactionCode = null;
         
-        const CONFIG = {
-            // Timing Configuration
-            MAX_CHECK_DURATION: 600000,      // 10 minutes (600,000ms)
-            INITIAL_CHECK_INTERVAL: 3000,    // Start checking every 3 seconds
-            MAX_CHECK_INTERVAL: 10000,       // Slow down to 10 seconds max
-            BACKOFF_MULTIPLIER: 1.2,         // Gradually slow down by 20%
-            
-            // Network Retry Configuration
-            MAX_NETWORK_RETRIES: 3,          // Retry 3 times on network failure
-            RETRY_DELAY: 2000,               // Wait 2 seconds between retries
-            
-            // Storage
-            STORAGE_KEY: 'payhero_pending_payments',
-            MAX_STORED_PAYMENTS: 50          // Keep last 50 payments
-        };
+        const form = document.getElementById('paymentForm');
+        const payBtn = document.getElementById('payBtn');
+        const loader = document.getElementById('loader');
+        const statusDiv = document.getElementById('status');
+        const checkStatusBtn = document.getElementById('checkStatusBtn');
         
-        // ========================================
-        // STATE MANAGEMENT
-        // ========================================
-        let currentTransaction = null;
-        let statusCheckInterval = null;
-        let startTime = null;
-        let currentCheckInterval = CONFIG.INITIAL_CHECK_INTERVAL;
-        let networkRetryCount = 0;
-        let isOnline = navigator.onLine;
-        
-        const elements = {
-            form: document.getElementById('paymentForm'),
-            payBtn: document.getElementById('payBtn'),
-            loader: document.getElementById('loader'),
-            progressBar: document.getElementById('progressBar'),
-            progressBarFill: document.getElementById('progressBarFill'),
-            statusDiv: document.getElementById('status'),
-            checkStatusBtn: document.getElementById('checkStatusBtn'),
-            newPaymentBtn: document.getElementById('newPaymentBtn'),
-            timerDiv: document.getElementById('timer'),
-            pendingList: document.getElementById('pendingList'),
-            pendingCount: document.getElementById('pendingCount'),
-            networkStatus: document.getElementById('networkStatus')
-        };
-        
-        // ========================================
-        // NETWORK MONITORING
-        // ========================================
-        window.addEventListener('online', () => {
-            isOnline = true;
-            elements.networkStatus.className = 'network-status online';
-            console.log('Network: Online');
-            if (currentTransaction) {
-                checkPaymentStatus(false);  // Resume checking
-            }
-        });
-        
-        window.addEventListener('offline', () => {
-            isOnline = false;
-            elements.networkStatus.className = 'network-status offline';
-            console.log('Network: Offline');
-        });
-        
-        // ========================================
-        // LOCAL STORAGE MANAGEMENT
-        // ========================================
-        function getPendingPayments() {
-            try {
-                const stored = localStorage.getItem(CONFIG.STORAGE_KEY);
-                return stored ? JSON.parse(stored) : [];
-            } catch (e) {
-                console.error('Error reading storage:', e);
-                return [];
-            }
-        }
-        
-        function savePendingPayments(payments) {
-            try {
-                // Keep only the last MAX_STORED_PAYMENTS
-                const limited = payments.slice(-CONFIG.MAX_STORED_PAYMENTS);
-                localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(limited));
-                updatePendingCount();
-            } catch (e) {
-                console.error('Error saving to storage:', e);
-            }
-        }
-        
-        function addPendingPayment(payment) {
-            const payments = getPendingPayments();
-            payments.push({
-                ...payment,
-                createdAt: new Date().toISOString(),
-                lastChecked: new Date().toISOString()
-            });
-            savePendingPayments(payments);
-        }
-        
-        function updatePendingPayment(transactionCode, updates) {
-            const payments = getPendingPayments();
-            const index = payments.findIndex(p => p.transactionCode === transactionCode);
-            if (index !== -1) {
-                payments[index] = {
-                    ...payments[index],
-                    ...updates,
-                    lastChecked: new Date().toISOString()
-                };
-                savePendingPayments(payments);
-            }
-        }
-        
-        function removePendingPayment(transactionCode) {
-            const payments = getPendingPayments();
-            const filtered = payments.filter(p => p.transactionCode !== transactionCode);
-            savePendingPayments(filtered);
-        }
-        
-        function updatePendingCount() {
-            const payments = getPendingPayments();
-            const pending = payments.filter(p => p.status === 'PENDING' || p.status === 'PROCESSING');
-            elements.pendingCount.textContent = pending.length;
-        }
-        
-        // ========================================
-        // UI FUNCTIONS
-        // ========================================
-        function switchTab(tab) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            
-            if (tab === 'payment') {
-                document.querySelector('.tabs .tab:nth-child(1)').classList.add('active');
-                document.getElementById('paymentTab').classList.add('active');
-            } else {
-                document.querySelector('.tabs .tab:nth-child(2)').classList.add('active');
-                document.getElementById('pendingTab').classList.add('active');
-                renderPendingPayments();
-            }
-        }
-        
-        function formatTimeRemaining(elapsed) {
-            const remaining = Math.max(0, CONFIG.MAX_CHECK_DURATION - elapsed);
-            const minutes = Math.floor(remaining / 60000);
-            const seconds = Math.floor((remaining % 60000) / 1000);
-            return `${minutes}m ${seconds}s remaining`;
-        }
-        
-        function formatElapsedTime(elapsed) {
-            const minutes = Math.floor(elapsed / 60000);
-            const seconds = Math.floor((elapsed % 60000) / 1000);
-            return `${minutes}m ${seconds}s`;
-        }
-        
-        function updateProgressBar(elapsed) {
-            const progress = Math.min(100, (elapsed / CONFIG.MAX_CHECK_DURATION) * 100);
-            elements.progressBarFill.style.width = `${progress}%`;
-        }
-        
-        // ========================================
-        // PAYMENT INITIATION
-        // ========================================
-        elements.form.addEventListener('submit', async (e) => {
+        // Initiate Payment
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const phone = document.getElementById('phone').value;
             const amount = document.getElementById('amount').value;
             const description = document.getElementById('description').value;
             
-            // Reset state
-            stopStatusChecking();
-            currentTransaction = null;
-            startTime = null;
-            currentCheckInterval = CONFIG.INITIAL_CHECK_INTERVAL;
-            networkRetryCount = 0;
-            
             // Show loader
-            elements.payBtn.disabled = true;
-            elements.loader.style.display = 'block';
-            elements.progressBar.style.display = 'none';
-            elements.statusDiv.style.display = 'none';
-            elements.checkStatusBtn.style.display = 'none';
-            elements.newPaymentBtn.style.display = 'none';
-            elements.timerDiv.textContent = '';
+            payBtn.disabled = true;
+            loader.style.display = 'block';
+            statusDiv.style.display = 'none';
+            checkStatusBtn.style.display = 'none';
             
             try {
                 const response = await fetch(`${API_URL}/api/payment/initiate`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
                     body: JSON.stringify({
                         phone: phone,
                         amount: parseFloat(amount),
@@ -601,402 +239,76 @@
                 
                 const data = await response.json();
                 
-                elements.loader.style.display = 'none';
-                elements.statusDiv.style.display = 'block';
+                loader.style.display = 'none';
+                statusDiv.style.display = 'block';
                 
                 if (response.ok && data.status === 'success') {
-                    currentTransaction = {
-                        transactionCode: data.data.transaction_code,
-                        phone: phone,
-                        amount: amount,
-                        description: description,
-                        status: 'PENDING'
-                    };
-                    
-                    startTime = Date.now();
-                    
-                    // Save to pending payments
-                    addPendingPayment(currentTransaction);
-                    
-                    elements.statusDiv.className = 'status warning';
-                    elements.statusDiv.innerHTML = `
-                        <strong>⏳ Payment Request Sent!</strong><br><br>
+                    statusDiv.className = 'status success';
+                    statusDiv.innerHTML = `
+                        <strong>✅ Payment Request Sent!</strong><br><br>
                         Check your phone for M-Pesa prompt<br>
-                        <small>Transaction: ${currentTransaction.transactionCode}</small><br>
-                        <small style="margin-top: 10px; display: block;">Auto-checking status for up to 10 minutes...</small>
-                        <div class="retry-info">
-                            ℹ️ Smart checking: Fast at first, then gradually slows down<br>
-                            Network failures will be automatically retried
-                        </div>
+                        <small>Transaction: ${data.data.transaction_code || 'Pending'}</small>
                     `;
                     
-                    elements.progressBar.style.display = 'block';
-                    elements.checkStatusBtn.style.display = 'block';
-                    
-                    startAutoStatusCheck();
+                    // Save transaction code for status check
+                    if (data.data.transaction_code) {
+                        currentTransactionCode = data.data.transaction_code;
+                        checkStatusBtn.style.display = 'block';
+                    }
                 } else {
-                    elements.statusDiv.className = 'status error';
-                    elements.statusDiv.innerHTML = `
-                        <strong>❌ Payment Initiation Failed</strong><br><br>
-                        ${data.message || 'Unknown error occurred'}<br>
-                        <small>Please try again</small>
+                    statusDiv.className = 'status error';
+                    statusDiv.innerHTML = `
+                        <strong>❌ Payment Failed</strong><br><br>
+                        ${data.message || 'Unknown error occurred'}
                     `;
-                    elements.newPaymentBtn.style.display = 'block';
                 }
             } catch (error) {
-                elements.loader.style.display = 'none';
-                elements.statusDiv.style.display = 'block';
-                elements.statusDiv.className = 'status error';
-                elements.statusDiv.innerHTML = `
+                loader.style.display = 'none';
+                statusDiv.style.display = 'block';
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = `
                     <strong>❌ Connection Error</strong><br><br>
-                    Could not reach payment server<br>
-                    <small>Error: ${error.message}</small>
+                    Make sure the Python API is running at ${API_URL}
                 `;
-                elements.newPaymentBtn.style.display = 'block';
             } finally {
-                elements.payBtn.disabled = false;
+                payBtn.disabled = false;
             }
         });
         
-        // ========================================
-        // STATUS CHECKING WITH SMART POLLING
-        // ========================================
-        function startAutoStatusCheck() {
-            checkPaymentStatus(false);  // Check immediately
+        // Check Payment Status
+        checkStatusBtn.addEventListener('click', async () => {
+            if (!currentTransactionCode) return;
             
-            statusCheckInterval = setInterval(() => {
-                const elapsed = Date.now() - startTime;
-                
-                // Update UI
-                elements.timerDiv.textContent = formatTimeRemaining(elapsed);
-                updateProgressBar(elapsed);
-                
-                // Check if max time reached
-                if (elapsed >= CONFIG.MAX_CHECK_DURATION) {
-                    stopStatusChecking();
-                    handleTimeout();
-                    return;
-                }
-                
-                // Perform status check
-                checkPaymentStatus(false);
-                
-                // Gradually increase check interval (exponential backoff)
-                currentCheckInterval = Math.min(
-                    CONFIG.MAX_CHECK_INTERVAL,
-                    currentCheckInterval * CONFIG.BACKOFF_MULTIPLIER
-                );
-                
-                // Adjust interval for next check
-                clearInterval(statusCheckInterval);
-                statusCheckInterval = setInterval(arguments.callee, currentCheckInterval);
-                
-            }, currentCheckInterval);
-        }
-        
-        function stopStatusChecking() {
-            if (statusCheckInterval) {
-                clearInterval(statusCheckInterval);
-                statusCheckInterval = null;
-            }
-            elements.progressBar.style.display = 'none';
-            elements.timerDiv.textContent = '';
-        }
-        
-        async function checkPaymentStatus(manualCheck = true, retryCount = 0) {
-            if (!currentTransaction || !currentTransaction.transactionCode) return;
-            
-            // Check network status
-            if (!isOnline) {
-                if (manualCheck) {
-                    elements.statusDiv.className = 'status error';
-                    elements.statusDiv.innerHTML = `
-                        <strong>📡 No Internet Connection</strong><br><br>
-                        Please check your internet and try again
-                    `;
-                }
-                return;
-            }
-            
-            if (manualCheck) {
-                elements.checkStatusBtn.disabled = true;
-                elements.statusDiv.className = 'status info';
-                elements.statusDiv.innerHTML = 'Checking payment status...';
-            }
+            checkStatusBtn.disabled = true;
+            statusDiv.className = 'status info';
+            statusDiv.innerHTML = 'Checking payment status...';
             
             try {
-                const response = await fetch(
-                    `${API_URL}/api/payment/status/${currentTransaction.transactionCode}`,
-                    { timeout: 10000 }
-                );
-                
+                const response = await fetch(`${API_URL}/api/payment/status/${currentTransactionCode}`);
                 const data = await response.json();
-                networkRetryCount = 0;  // Reset on successful request
                 
                 if (response.ok && data.status === 'success') {
                     const payment = data.data;
-                    handlePaymentStatus(payment, manualCheck);
-                } else {
-                    throw new Error(data.message || 'Failed to get status');
-                }
-            } catch (error) {
-                console.error('Status check error:', error);
-                
-                // Network retry logic
-                if (retryCount < CONFIG.MAX_NETWORK_RETRIES) {
-                    console.log(`Retry ${retryCount + 1}/${CONFIG.MAX_NETWORK_RETRIES}`);
+                    const isPaid = payment.state === 'COMPLETED' || payment.paid === true;
                     
-                    if (manualCheck) {
-                        elements.statusDiv.className = 'status warning';
-                        elements.statusDiv.innerHTML = `
-                            <strong>⚠️ Network Issue</strong><br><br>
-                            Retrying... (${retryCount + 1}/${CONFIG.MAX_NETWORK_RETRIES})
-                        `;
-                    }
-                    
-                    setTimeout(() => {
-                        checkPaymentStatus(manualCheck, retryCount + 1);
-                    }, CONFIG.RETRY_DELAY);
-                } else {
-                    if (manualCheck) {
-                        elements.statusDiv.className = 'status error';
-                        elements.statusDiv.innerHTML = `
-                            <strong>❌ Could Not Check Status</strong><br><br>
-                            Network error after ${CONFIG.MAX_NETWORK_RETRIES} retries<br>
-                            <small>Payment may still be processing</small>
-                        `;
-                    }
-                }
-            } finally {
-                if (manualCheck) {
-                    elements.checkStatusBtn.disabled = false;
-                }
-            }
-        }
-        
-        function handlePaymentStatus(payment, manualCheck) {
-            const isPaid = payment.state === 'COMPLETED' || payment.paid === true;
-            const isPending = payment.state === 'PENDING' || payment.state === 'PROCESSING';
-            const isFailed = payment.state === 'FAILED' || payment.state === 'CANCELLED' || payment.state === 'EXPIRED';
-            
-            // Update stored payment
-            updatePendingPayment(currentTransaction.transactionCode, {
-                status: payment.state,
-                paid: payment.paid
-            });
-            
-            if (isPaid) {
-                // Payment successful!
-                stopStatusChecking();
-                const elapsed = Date.now() - startTime;
-                
-                elements.statusDiv.className = 'status success';
-                elements.statusDiv.innerHTML = `
-                    <strong>✅ Payment Confirmed!</strong><br><br>
-                    Amount: KES ${payment.amount}<br>
-                    Phone: ${payment.phone_number}<br>
-                    Transaction: ${currentTransaction.transactionCode}<br>
-                    Time: ${formatElapsedTime(elapsed)}<br>
-                    <small style="margin-top: 10px; display: block;">Payment completed successfully!</small>
-                `;
-                elements.newPaymentBtn.style.display = 'block';
-                elements.checkStatusBtn.style.display = 'none';
-                
-                currentTransaction = null;
-                
-            } else if (isFailed) {
-                // Payment failed
-                stopStatusChecking();
-                
-                elements.statusDiv.className = 'status error';
-                elements.statusDiv.innerHTML = `
-                    <strong>❌ Payment ${payment.state}</strong><br><br>
-                    Transaction: ${currentTransaction.transactionCode}<br>
-                    <small>The payment was not completed</small>
-                `;
-                elements.newPaymentBtn.style.display = 'block';
-                elements.checkStatusBtn.style.display = 'none';
-                
-                currentTransaction = null;
-                
-            } else if (isPending) {
-                // Still pending
-                const elapsed = Date.now() - startTime;
-                const elapsedFormatted = formatElapsedTime(elapsed);
-                
-                if (!manualCheck) {
-                    elements.statusDiv.className = 'status warning';
-                    elements.statusDiv.innerHTML = `
-                        <strong>⏳ Payment Pending...</strong><br><br>
-                        Status: ${payment.state || 'Processing'}<br>
-                        Elapsed: ${elapsedFormatted} / 10m<br>
-                        Check interval: ${Math.round(currentCheckInterval / 1000)}s<br>
-                        <small>Waiting for payment confirmation...</small>
-                    `;
-                } else {
-                    elements.statusDiv.className = 'status info';
-                    elements.statusDiv.innerHTML = `
-                        <strong>📊 Current Status</strong><br><br>
+                    statusDiv.className = isPaid ? 'status success' : 'status info';
+                    statusDiv.innerHTML = `
+                        <strong>${isPaid ? '✅ Payment Confirmed!' : '⏳ Payment Pending'}</strong><br><br>
                         Amount: KES ${payment.amount}<br>
-                        Status: ${payment.state || 'Pending'}<br>
-                        Phone: ${payment.phone_number}<br>
-                        <small>Payment is being processed</small>
+                        Status: ${payment.state || payment.status}<br>
+                        Phone: ${payment.phone_number}
                     `;
-                }
-            }
-        }
-        
-        function handleTimeout() {
-            elements.statusDiv.className = 'status error';
-            elements.statusDiv.innerHTML = `
-                <strong>⏱️ Status Check Timeout</strong><br><br>
-                Checked for 10 minutes without confirmation<br>
-                <small>Transaction: ${currentTransaction.transactionCode}</small><br><br>
-                <strong>What this means:</strong><br>
-                • Payment may still be processing<br>
-                • Check "Pending" tab to monitor<br>
-                • You can manually check status<br>
-                • Or start a new payment<br>
-            `;
-            
-            elements.newPaymentBtn.style.display = 'block';
-            elements.checkStatusBtn.style.display = 'block';
-            
-            // Keep in pending payments for manual checking
-            updatePendingPayment(currentTransaction.transactionCode, {
-                timedOut: true
-            });
-        }
-        
-        // ========================================
-        // PENDING PAYMENTS UI
-        // ========================================
-        function renderPendingPayments() {
-            const payments = getPendingPayments().reverse();  // Show newest first
-            
-            if (payments.length === 0) {
-                elements.pendingList.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">📭</div>
-                        <div>No pending payments</div>
-                        <small>Your payment history will appear here</small>
-                    </div>
-                `;
-                return;
-            }
-            
-            elements.pendingList.innerHTML = payments.map(payment => {
-                const statusClass = payment.status === 'COMPLETED' ? 'completed' : 
-                                   (payment.status === 'FAILED' || payment.status === 'CANCELLED') ? 'failed' : '';
-                
-                const statusBadge = payment.status === 'COMPLETED' ? 'status-completed' :
-                                   (payment.status === 'FAILED' || payment.status === 'CANCELLED') ? 'status-failed' :
-                                   'status-pending';
-                
-                const createdDate = new Date(payment.createdAt).toLocaleString();
-                
-                return `
-                    <div class="pending-payment ${statusClass}">
-                        <div class="pending-payment-header">
-                            <div class="pending-payment-title">
-                                KES ${payment.amount} - ${payment.description}
-                            </div>
-                            <div class="pending-payment-status ${statusBadge}">
-                                ${payment.status || 'PENDING'}
-                            </div>
-                        </div>
-                        <div class="pending-payment-details">
-                            Phone: ${payment.phone}<br>
-                            Transaction: ${payment.transactionCode}<br>
-                            Created: ${createdDate}
-                        </div>
-                        <div class="pending-payment-actions">
-                            ${payment.status !== 'COMPLETED' && payment.status !== 'FAILED' ? 
-                                `<button class="small-btn" onclick="recheckPayment('${payment.transactionCode}')">
-                                    Check Status
-                                </button>` : ''}
-                            <button class="small-btn" style="background: #dc3545;" 
-                                onclick="removePayment('${payment.transactionCode}')">
-                                Remove
-                            </button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-        
-        async function recheckPayment(transactionCode) {
-            const payments = getPendingPayments();
-            const payment = payments.find(p => p.transactionCode === transactionCode);
-            
-            if (!payment) return;
-            
-            // Switch to payment tab and show checking status
-            switchTab('payment');
-            
-            currentTransaction = payment;
-            elements.statusDiv.style.display = 'block';
-            elements.statusDiv.className = 'status info';
-            elements.statusDiv.innerHTML = 'Checking payment status...';
-            elements.checkStatusBtn.style.display = 'none';
-            elements.newPaymentBtn.style.display = 'none';
-            
-            try {
-                const response = await fetch(`${API_URL}/api/payment/status/${transactionCode}`);
-                const data = await response.json();
-                
-                if (response.ok && data.status === 'success') {
-                    handlePaymentStatus(data.data, true);
                 } else {
-                    elements.statusDiv.className = 'status error';
-                    elements.statusDiv.innerHTML = 'Could not check status. Try again.';
+                    statusDiv.className = 'status error';
+                    statusDiv.innerHTML = 'Could not check status. Try again.';
                 }
             } catch (error) {
-                elements.statusDiv.className = 'status error';
-                elements.statusDiv.innerHTML = `Error: ${error.message}`;
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = 'Error checking status';
             } finally {
-                elements.checkStatusBtn.style.display = 'block';
-                elements.newPaymentBtn.style.display = 'block';
+                checkStatusBtn.disabled = false;
             }
-        }
-        
-        function removePayment(transactionCode) {
-            if (confirm('Remove this payment from history?')) {
-                removePendingPayment(transactionCode);
-                renderPendingPayments();
-            }
-        }
-        
-        // ========================================
-        // BUTTON HANDLERS
-        // ========================================
-        elements.checkStatusBtn.addEventListener('click', () => {
-            checkPaymentStatus(true);
         });
-        
-        elements.newPaymentBtn.addEventListener('click', () => {
-            stopStatusChecking();
-            currentTransaction = null;
-            startTime = null;
-            currentCheckInterval = CONFIG.INITIAL_CHECK_INTERVAL;
-            elements.statusDiv.style.display = 'none';
-            elements.checkStatusBtn.style.display = 'none';
-            elements.newPaymentBtn.style.display = 'none';
-            elements.progressBar.style.display = 'none';
-            elements.timerDiv.textContent = '';
-            elements.form.reset();
-            document.getElementById('description').value = 'Test Payment';
-        });
-        
-        // ========================================
-        // INITIALIZATION
-        // ========================================
-        updatePendingCount();
-        
-        // Make functions globally accessible
-        window.switchTab = switchTab;
-        window.recheckPayment = recheckPayment;
-        window.removePayment = removePayment;
     </script>
 </body>
 </html>
