@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PayHero Payment</title>
+    <title>PayHero Payment - M-Pesa STK Push</title>
     <style>
         * {
             margin: 0;
@@ -126,114 +126,127 @@
             color: #856404;
             border: 2px solid #ffeaa7;
         }
-        
-        .loader {
-            display: none;
-            margin-top: 10px;
+
+        /* Processing State */
+        .processing {
             text-align: center;
+            padding: 30px 20px;
+            display: none;
         }
-        
+
+        .processing.show {
+            display: block;
+        }
+
         .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
             animation: spin 1s linear infinite;
-            margin: 0 auto;
+            margin: 0 auto 20px;
         }
-        
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        
-        .check-status-btn {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            margin-top: 10px;
+
+        .processing h3 {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .processing p {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .processing .timer {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            margin: 15px 0;
+        }
+
+        .payment-form {
+            display: block;
+        }
+
+        .payment-form.hide {
+            display: none;
         }
         
         .new-payment-btn {
             background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
             margin-top: 10px;
         }
-        
-        .progress-bar {
-            width: 100%;
-            height: 4px;
-            background: #e0e0e0;
-            border-radius: 2px;
+
+        .check-status-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             margin-top: 10px;
-            overflow: hidden;
-            display: none;
-        }
-        
-        .progress-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-            animation: progress 3s ease-in-out infinite;
-        }
-        
-        @keyframes progress {
-            0% { width: 0%; }
-            50% { width: 70%; }
-            100% { width: 100%; }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>💳 PayHero Payment</h1>
-        <p class="subtitle">M-Pesa STK Push - Till 6253624</p>
+        <p class="subtitle">M-Pesa STK Push - Secure Payment</p>
         
-        <form id="paymentForm">
-            <div class="form-group">
-                <label for="phone">Phone Number</label>
-                <input 
-                    type="tel" 
-                    id="phone" 
-                    placeholder="0712345678 or 254712345678"
-                    required
-                >
-            </div>
-            
-            <div class="form-group">
-                <label for="amount">Amount (KES)</label>
-                <input 
-                    type="number" 
-                    id="amount" 
-                    placeholder="100"
-                    min="1"
-                    required
-                >
-            </div>
-            
-            <div class="form-group">
-                <label for="description">Description</label>
-                <input 
-                    type="text" 
-                    id="description" 
-                    placeholder="Payment for Order #123"
-                    value="Test Payment"
-                >
-            </div>
-            
-            <button type="submit" id="payBtn">Send Payment Request</button>
-        </form>
-        
-        <div class="loader" id="loader">
-            <div class="spinner"></div>
-            <p style="margin-top: 10px; color: #666;">Processing...</p>
+        <!-- Payment Form -->
+        <div class="payment-form" id="paymentForm">
+            <form id="mpesaForm">
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input 
+                        type="tel" 
+                        id="phone" 
+                        placeholder="0712345678 or 254712345678"
+                        required
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label for="amount">Amount (KES)</label>
+                    <input 
+                        type="number" 
+                        id="amount" 
+                        placeholder="100"
+                        min="1"
+                        required
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <input 
+                        type="text" 
+                        id="description" 
+                        placeholder="Payment for Order #123"
+                        value="Test Payment"
+                    >
+                </div>
+                
+                <button type="submit" id="payBtn">Pay with M-Pesa</button>
+            </form>
         </div>
-        
-        <div class="progress-bar" id="progressBar">
-            <div class="progress-bar-fill"></div>
+
+        <!-- Processing State -->
+        <div class="processing" id="processingState">
+            <div class="spinner"></div>
+            <h3>Processing Payment...</h3>
+            <p>Please check your phone for M-Pesa prompt<br>Enter your PIN to complete payment</p>
+            <div class="timer" id="timer">15s</div>
+            <p style="font-size: 12px; color: #999; margin-top: 10px;">Verifying payment status...</p>
         </div>
         
         <div class="status" id="status"></div>
         
         <button class="check-status-btn" id="checkStatusBtn" style="display: none;">
-            Check Payment Status Now
+            Check Payment Status
         </button>
         
         <button class="new-payment-btn" id="newPaymentBtn" style="display: none;">
@@ -246,38 +259,42 @@
         const API_URL = 'https://payhero-api.onrender.com';  // UPDATE THIS!
         
         let currentTransactionCode = null;
-        let statusCheckInterval = null;
-        let statusCheckCount = 0;
-        const MAX_STATUS_CHECKS = 20; // Check for 1 minute (20 checks x 3 seconds)
+        let countdownTimer = null;
+        let timeLeft = 15;
         
-        const form = document.getElementById('paymentForm');
-        const payBtn = document.getElementById('payBtn');
-        const loader = document.getElementById('loader');
-        const progressBar = document.getElementById('progressBar');
+        const mpesaForm = document.getElementById('mpesaForm');
+        const paymentForm = document.getElementById('paymentForm');
+        const processingState = document.getElementById('processingState');
         const statusDiv = document.getElementById('status');
         const checkStatusBtn = document.getElementById('checkStatusBtn');
         const newPaymentBtn = document.getElementById('newPaymentBtn');
+        const timerDisplay = document.getElementById('timer');
         
-        // Initiate Payment
-        form.addEventListener('submit', async (e) => {
+        // Submit Payment
+        mpesaForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const phone = document.getElementById('phone').value;
             const amount = document.getElementById('amount').value;
             const description = document.getElementById('description').value;
             
-            // Reset state
-            stopStatusChecking();
-            currentTransactionCode = null;
-            statusCheckCount = 0;
+            // Validate phone
+            const phoneRegex = /^(07|01|254)\d+$/;
+            if (!phoneRegex.test(phone)) {
+                alert('Please enter a valid phone number (07XX, 01XX, or 254...)');
+                return;
+            }
             
-            // Show loader
-            payBtn.disabled = true;
-            loader.style.display = 'block';
-            progressBar.style.display = 'none';
+            // Reset state
+            currentTransactionCode = null;
+            timeLeft = 15;
             statusDiv.style.display = 'none';
             checkStatusBtn.style.display = 'none';
             newPaymentBtn.style.display = 'none';
+            
+            // Show processing state
+            paymentForm.classList.add('hide');
+            processingState.classList.add('show');
             
             try {
                 const response = await fetch(`${API_URL}/api/payment/initiate`, {
@@ -294,90 +311,100 @@
                 
                 const data = await response.json();
                 
-                loader.style.display = 'none';
-                statusDiv.style.display = 'block';
-                
                 if (response.ok && data.status === 'success') {
                     currentTransactionCode = data.data.transaction_code;
                     
-                    statusDiv.className = 'status warning';
-                    statusDiv.innerHTML = `
-                        <strong>⏳ Payment Request Sent!</strong><br><br>
-                        Check your phone for M-Pesa prompt<br>
-                        <small>Transaction: ${currentTransactionCode || 'Pending'}</small><br>
-                        <small style="margin-top: 10px; display: block;">Auto-checking status...</small>
-                    `;
+                    console.log('Payment initiated:', currentTransactionCode);
                     
-                    // Show progress bar and buttons
-                    progressBar.style.display = 'block';
-                    checkStatusBtn.style.display = 'block';
+                    // Start countdown timer
+                    startCountdown();
                     
-                    // Start auto-checking status
-                    if (currentTransactionCode) {
-                        startAutoStatusCheck();
-                    }
                 } else {
-                    statusDiv.className = 'status error';
-                    statusDiv.innerHTML = `
-                        <strong>❌ Payment Failed</strong><br><br>
-                        ${data.message || 'Unknown error occurred'}
-                    `;
-                    newPaymentBtn.style.display = 'block';
+                    // Payment initiation failed
+                    showError(data.message || 'Failed to initiate payment');
                 }
             } catch (error) {
-                loader.style.display = 'none';
-                statusDiv.style.display = 'block';
-                statusDiv.className = 'status error';
-                statusDiv.innerHTML = `
-                    <strong>❌ Connection Error</strong><br><br>
-                    Make sure the API is running at ${API_URL}
-                `;
-                newPaymentBtn.style.display = 'block';
-            } finally {
-                payBtn.disabled = false;
+                console.error('Payment error:', error);
+                showError('Connection error. Please check your internet and try again.');
             }
         });
         
-        // Start Auto Status Checking (every 3 seconds)
-        function startAutoStatusCheck() {
-            statusCheckInterval = setInterval(async () => {
-                statusCheckCount++;
+        // Countdown Timer
+        function startCountdown() {
+            timerDisplay.textContent = `${timeLeft}s`;
+            
+            countdownTimer = setInterval(() => {
+                timeLeft--;
+                timerDisplay.textContent = `${timeLeft}s`;
                 
-                if (statusCheckCount > MAX_STATUS_CHECKS) {
-                    stopStatusChecking();
-                    statusDiv.className = 'status error';
-                    statusDiv.innerHTML = `
-                        <strong>⏱️ Timeout</strong><br><br>
-                        Payment status check timed out.<br>
-                        The payment may still process.<br>
-                        <small>Transaction: ${currentTransactionCode}</small>
-                    `;
-                    newPaymentBtn.style.display = 'block';
-                    return;
+                if (timeLeft <= 0) {
+                    clearInterval(countdownTimer);
+                    checkFinalStatus();
                 }
-                
-                await checkPaymentStatus(false);
-            }, 3000); // Check every 3 seconds
+            }, 1000);
         }
         
-        // Stop Status Checking
-        function stopStatusChecking() {
-            if (statusCheckInterval) {
-                clearInterval(statusCheckInterval);
-                statusCheckInterval = null;
+        // Check Final Payment Status
+        async function checkFinalStatus() {
+            if (!currentTransactionCode) {
+                showError('No transaction to check');
+                return;
             }
-            progressBar.style.display = 'none';
+            
+            try {
+                const response = await fetch(`${API_URL}/api/payment/status/${currentTransactionCode}`);
+                const data = await response.json();
+                
+                processingState.classList.remove('show');
+                statusDiv.style.display = 'block';
+                
+                if (response.ok && data.status === 'success') {
+                    const payment = data.data;
+                    const isPaid = payment.state === 'COMPLETED' || payment.paid === true;
+                    
+                    if (isPaid) {
+                        // Payment successful
+                        statusDiv.className = 'status success';
+                        statusDiv.innerHTML = `
+                            <strong>✅ Payment Successful!</strong><br><br>
+                            Amount: KES ${payment.amount}<br>
+                            Phone: ${payment.phone_number}<br>
+                            Transaction: ${currentTransactionCode}<br><br>
+                            <small>Your payment has been confirmed!</small>
+                        `;
+                        newPaymentBtn.style.display = 'block';
+                    } else {
+                        // Payment still pending or failed
+                        statusDiv.className = 'status warning';
+                        statusDiv.innerHTML = `
+                            <strong>⏳ Payment Pending</strong><br><br>
+                            Status: ${payment.state || 'Processing'}<br>
+                            Transaction: ${currentTransactionCode}<br><br>
+                            <small>Payment may still be processing. Check status below.</small>
+                        `;
+                        checkStatusBtn.style.display = 'block';
+                        newPaymentBtn.style.display = 'block';
+                    }
+                } else {
+                    showError('Could not verify payment status');
+                    checkStatusBtn.style.display = 'block';
+                    newPaymentBtn.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Status check error:', error);
+                showError('Could not check payment status');
+                checkStatusBtn.style.display = 'block';
+                newPaymentBtn.style.display = 'block';
+            }
         }
         
-        // Check Payment Status
-        async function checkPaymentStatus(manualCheck = true) {
+        // Manual Status Check
+        checkStatusBtn.addEventListener('click', async () => {
             if (!currentTransactionCode) return;
             
-            if (manualCheck) {
-                checkStatusBtn.disabled = true;
-                statusDiv.className = 'status info';
-                statusDiv.innerHTML = 'Checking payment status...';
-            }
+            checkStatusBtn.disabled = true;
+            statusDiv.className = 'status info';
+            statusDiv.innerHTML = 'Checking payment status...';
             
             try {
                 const response = await fetch(`${API_URL}/api/payment/status/${currentTransactionCode}`);
@@ -386,85 +413,66 @@
                 if (response.ok && data.status === 'success') {
                     const payment = data.data;
                     const isPaid = payment.state === 'COMPLETED' || payment.paid === true;
-                    const isPending = payment.state === 'PENDING' || payment.state === 'PROCESSING';
-                    const isFailed = payment.state === 'FAILED' || payment.state === 'CANCELLED';
                     
                     if (isPaid) {
-                        // Payment successful!
-                        stopStatusChecking();
                         statusDiv.className = 'status success';
                         statusDiv.innerHTML = `
                             <strong>✅ Payment Confirmed!</strong><br><br>
                             Amount: KES ${payment.amount}<br>
                             Phone: ${payment.phone_number}<br>
-                            Transaction: ${currentTransactionCode}<br>
-                            <small style="margin-top: 10px; display: block;">Payment completed successfully!</small>
+                            Transaction: ${currentTransactionCode}
                         `;
-                        newPaymentBtn.style.display = 'block';
                         checkStatusBtn.style.display = 'none';
-                    } else if (isFailed) {
-                        // Payment failed
-                        stopStatusChecking();
-                        statusDiv.className = 'status error';
-                        statusDiv.innerHTML = `
-                            <strong>❌ Payment Failed</strong><br><br>
-                            Status: ${payment.state}<br>
-                            Transaction: ${currentTransactionCode}<br>
-                            <small>The payment was not completed.</small>
-                        `;
-                        newPaymentBtn.style.display = 'block';
-                        checkStatusBtn.style.display = 'none';
-                    } else if (isPending && !manualCheck) {
-                        // Still pending - auto-check continues
+                    } else {
                         statusDiv.className = 'status warning';
                         statusDiv.innerHTML = `
-                            <strong>⏳ Payment Pending...</strong><br><br>
+                            <strong>⏳ Still Pending</strong><br><br>
                             Status: ${payment.state || 'Processing'}<br>
-                            Check ${statusCheckCount}/${MAX_STATUS_CHECKS}<br>
-                            <small>Waiting for payment confirmation...</small>
-                        `;
-                    } else {
-                        statusDiv.className = 'status info';
-                        statusDiv.innerHTML = `
-                            <strong>📊 Current Status</strong><br><br>
-                            Amount: KES ${payment.amount}<br>
-                            Status: ${payment.state || payment.status}<br>
-                            Phone: ${payment.phone_number}
+                            Transaction: ${currentTransactionCode}<br><br>
+                            <small>Keep checking or try again later</small>
                         `;
                     }
                 } else {
-                    if (manualCheck) {
-                        statusDiv.className = 'status error';
-                        statusDiv.innerHTML = 'Could not check status. Try again.';
-                    }
+                    statusDiv.className = 'status error';
+                    statusDiv.innerHTML = 'Could not retrieve payment status';
                 }
             } catch (error) {
-                if (manualCheck) {
-                    statusDiv.className = 'status error';
-                    statusDiv.innerHTML = 'Error checking status';
-                }
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = 'Error checking status';
             } finally {
-                if (manualCheck) {
-                    checkStatusBtn.disabled = false;
-                }
+                checkStatusBtn.disabled = false;
             }
-        }
+        });
         
-        // Manual Status Check Button
-        checkStatusBtn.addEventListener('click', () => checkPaymentStatus(true));
-        
-        // New Payment Button
+        // New Payment
         newPaymentBtn.addEventListener('click', () => {
-            stopStatusChecking();
+            // Reset everything
+            clearInterval(countdownTimer);
             currentTransactionCode = null;
-            statusCheckCount = 0;
+            timeLeft = 15;
+            
+            paymentForm.classList.remove('hide');
+            processingState.classList.remove('show');
             statusDiv.style.display = 'none';
             checkStatusBtn.style.display = 'none';
             newPaymentBtn.style.display = 'none';
-            progressBar.style.display = 'none';
-            form.reset();
+            
+            mpesaForm.reset();
             document.getElementById('description').value = 'Test Payment';
         });
+        
+        // Show Error
+        function showError(message) {
+            processingState.classList.remove('show');
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'status error';
+            statusDiv.innerHTML = `
+                <strong>❌ Error</strong><br><br>
+                ${message}
+            `;
+            newPaymentBtn.style.display = 'block';
+            clearInterval(countdownTimer);
+        }
     </script>
 </body>
 </html>
