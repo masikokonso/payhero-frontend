@@ -60,7 +60,6 @@
             border: 2px solid #e0e0e0;
             border-radius: 10px;
             font-size: 16px;
-            transition: border-color 0.3s;
         }
         
         input:focus {
@@ -78,7 +77,6 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s;
         }
         
         button:hover {
@@ -88,7 +86,6 @@
         button:disabled {
             background: #ccc;
             cursor: not-allowed;
-            transform: none;
         }
         
         .status {
@@ -109,16 +106,10 @@
             color: #721c24;
             border: 2px solid #f5c6cb;
         }
-        
-        .status.info {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 2px solid #bee5eb;
-        }
 
         .processing {
             text-align: center;
-            padding: 30px 20px;
+            padding: 20px;
             display: none;
         }
 
@@ -127,36 +118,18 @@
         }
 
         .spinner {
-            width: 50px;
-            height: 50px;
+            width: 40px;
+            height: 40px;
             border: 4px solid #f3f3f3;
             border-top: 4px solid #667eea;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
+            margin: 0 auto 15px;
         }
 
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
-        }
-
-        .processing h3 {
-            font-size: 20px;
-            color: #333;
-            margin-bottom: 10px;
-        }
-
-        .processing p {
-            color: #666;
-            font-size: 14px;
-        }
-
-        .processing .check-count {
-            font-size: 16px;
-            font-weight: bold;
-            color: #667eea;
-            margin: 15px 0;
         }
 
         .payment-form.hide {
@@ -167,44 +140,51 @@
             background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
             margin-top: 10px;
         }
+
+        .debug-log {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .debug-log.show {
+            display: block;
+        }
+
+        .debug-log div {
+            margin: 5px 0;
+            padding: 5px;
+            border-left: 3px solid #667eea;
+            padding-left: 10px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>💳 PayHero Paymenta</h1>
+        <h1>💳 PayHero Payment</h1>
         <p class="subtitle">M-Pesa STK Push - Till 6253624</p>
         
         <div class="payment-form" id="paymentForm">
             <form id="mpesaForm">
                 <div class="form-group">
                     <label for="phone">Phone Number</label>
-                    <input 
-                        type="tel" 
-                        id="phone" 
-                        placeholder="0712345678"
-                        required
-                    >
+                    <input type="tel" id="phone" placeholder="0712345678" required>
                 </div>
                 
                 <div class="form-group">
                     <label for="amount">Amount (KES)</label>
-                    <input 
-                        type="number" 
-                        id="amount" 
-                        placeholder="100"
-                        min="1"
-                        required
-                    >
+                    <input type="number" id="amount" placeholder="100" min="1" required>
                 </div>
                 
                 <div class="form-group">
                     <label for="description">Description</label>
-                    <input 
-                        type="text" 
-                        id="description" 
-                        placeholder="Payment description"
-                        value="Test Payment"
-                    >
+                    <input type="text" id="description" value="Test Payment">
                 </div>
                 
                 <button type="submit" id="payBtn">Pay with M-Pesa</button>
@@ -213,9 +193,9 @@
 
         <div class="processing" id="processingState">
             <div class="spinner"></div>
-            <h3>Verifying Payment...</h3>
-            <p>Check your phone for M-Pesa prompt<br>Enter your PIN to complete</p>
-            <div class="check-count" id="checkCount">Checking... (0/60)</div>
+            <h3 id="processingTitle">Sending Payment Request...</h3>
+            <p id="processingText">Please wait...</p>
+            <p id="checkCount" style="margin-top: 10px; font-weight: bold; color: #667eea;"></p>
         </div>
         
         <div class="status" id="status"></div>
@@ -223,30 +203,53 @@
         <button class="new-payment-btn" id="newPaymentBtn" style="display: none;">
             Make New Payment
         </button>
+
+        <div class="debug-log" id="debugLog"></div>
     </div>
 
     <script>
-        const API_URL = 'https://payhero-api.onrender.com';
+        const API_URL = 'https://payhero-api.onrender.com'; // UPDATE THIS!
         
         let currentTransactionCode = null;
         let statusCheckInterval = null;
         let checkCount = 0;
-        const MAX_CHECKS = 60;
-        const CHECK_INTERVAL = 3000;
+        const MAX_CHECKS = 60; // 3 minutes (60 × 3 seconds)
         
         const mpesaForm = document.getElementById('mpesaForm');
         const paymentForm = document.getElementById('paymentForm');
         const processingState = document.getElementById('processingState');
+        const processingTitle = document.getElementById('processingTitle');
+        const processingText = document.getElementById('processingText');
+        const checkCountDiv = document.getElementById('checkCount');
         const statusDiv = document.getElementById('status');
         const newPaymentBtn = document.getElementById('newPaymentBtn');
-        const checkCountDiv = document.getElementById('checkCount');
+        const debugLog = document.getElementById('debugLog');
+        
+        function log(message, data = null) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            if (data) {
+                logEntry.textContent += ` ${JSON.stringify(data)}`;
+            }
+            debugLog.appendChild(logEntry);
+            debugLog.scrollTop = debugLog.scrollHeight;
+            console.log(message, data || '');
+        }
         
         mpesaForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
+            debugLog.classList.add('show');
+            debugLog.innerHTML = '';
+            
             const phone = document.getElementById('phone').value;
             const amount = document.getElementById('amount').value;
             const description = document.getElementById('description').value;
+            
+            log('Starting payment process...');
+            log('Phone:', phone);
+            log('Amount:', amount);
             
             currentTransactionCode = null;
             checkCount = 0;
@@ -255,9 +258,15 @@
             
             paymentForm.classList.add('hide');
             processingState.classList.add('show');
-            checkCountDiv.textContent = 'Initiating payment...';
+            processingTitle.textContent = 'Sending Payment Request...';
+            processingText.textContent = 'Connecting to PayHero...';
+            checkCountDiv.textContent = '';
+            
+            const startTime = Date.now();
             
             try {
+                log('Calling API:', `${API_URL}/api/payment/initiate`);
+                
                 const response = await fetch(`${API_URL}/api/payment/initiate`, {
                     method: 'POST',
                     headers: {
@@ -270,24 +279,29 @@
                     })
                 });
                 
+                const responseTime = Date.now() - startTime;
+                log(`API responded in ${responseTime}ms`);
+                
                 const data = await response.json();
+                log('API Response:', data);
                 
                 if (response.ok && data.status === 'success') {
                     currentTransactionCode = data.data.transaction_code;
+                    log('✓ Transaction initiated!', currentTransactionCode);
                     
-                    console.log('Payment initiated:', currentTransactionCode);
+                    processingTitle.textContent = 'Check Your Phone!';
+                    processingText.textContent = 'Enter M-Pesa PIN on your phone';
                     
-                    checkCountDiv.textContent = 'Checking payment status...';
-                    
-                    setTimeout(() => {
-                        startStatusChecking();
-                    }, 5000);
+                    // START CHECKING IMMEDIATELY (NO DELAY!)
+                    log('Starting status checks immediately...');
+                    startStatusChecking();
                     
                 } else {
+                    log('✗ Payment initiation failed:', data.message);
                     showError(data.message || 'Failed to initiate payment');
                 }
             } catch (error) {
-                console.error('Payment error:', error);
+                log('✗ Network error:', error.message);
                 showError('Connection error: ' + error.message);
             }
         });
@@ -295,19 +309,13 @@
         function startStatusChecking() {
             checkCount = 0;
             
-            statusCheckInterval = setInterval(async () => {
-                checkCount++;
-                checkCountDiv.textContent = `Checking... (${checkCount}/${MAX_CHECKS})`;
-                
-                console.log(`Check ${checkCount}/${MAX_CHECKS} for ${currentTransactionCode}`);
-                
-                await checkPaymentStatus();
-                
-                if (checkCount >= MAX_CHECKS) {
-                    stopChecking();
-                    showTimeout();
-                }
-            }, CHECK_INTERVAL);
+            // Check immediately first time
+            checkPaymentStatus();
+            
+            // Then check every 3 seconds
+            statusCheckInterval = setInterval(() => {
+                checkPaymentStatus();
+            }, 3000);
         }
         
         function stopChecking() {
@@ -318,34 +326,67 @@
         }
         
         async function checkPaymentStatus() {
-            if (!currentTransactionCode) return;
+            checkCount++;
+            checkCountDiv.textContent = `Checking... (${checkCount}/${MAX_CHECKS})`;
+            
+            log(`Check #${checkCount}/${MAX_CHECKS}`, currentTransactionCode);
             
             try {
+                const checkStart = Date.now();
                 const response = await fetch(`${API_URL}/api/payment/status/${currentTransactionCode}`);
-                const data = await response.json();
+                const checkTime = Date.now() - checkStart;
                 
-                console.log(`Status response:`, data);
+                log(`Status check took ${checkTime}ms`);
+                
+                const data = await response.json();
+                log('Status response:', data);
                 
                 if (response.ok && data.status === 'success') {
                     const payment = data.data;
                     const state = payment.state;
                     
+                    log(`Payment state: ${state}`);
+                    
+                    // CHECK FOR SUCCESS
                     if (state === 'COMPLETED' || payment.paid === true) {
+                        log('✓✓✓ PAYMENT SUCCESSFUL!');
                         stopChecking();
                         showSuccess(payment);
-                    } 
-                    else if (state === 'FAILED' || state === 'CANCELLED' || state === 'EXPIRED' || state === 'REJECTED') {
+                        return;
+                    }
+                    
+                    // CHECK FOR FAILURE
+                    if (state === 'FAILED' || state === 'CANCELLED' || state === 'EXPIRED' || state === 'REJECTED') {
+                        log(`✗✗✗ PAYMENT ${state}!`);
                         stopChecking();
                         showFailed(state, payment);
+                        return;
                     }
-                    else {
-                        console.log(`Payment still ${state}, continuing checks...`);
+                    
+                    // STILL PENDING
+                    log(`Still pending... (${state})`);
+                    
+                    if (checkCount >= MAX_CHECKS) {
+                        log('⏱ TIMEOUT - Stopping checks');
+                        stopChecking();
+                        showTimeout();
                     }
+                    
                 } else {
-                    console.error('Status check failed:', data);
+                    log('✗ Status check failed:', data);
+                    
+                    if (checkCount >= MAX_CHECKS) {
+                        stopChecking();
+                        showError('Could not verify payment status');
+                    }
                 }
             } catch (error) {
-                console.error('Status check error:', error);
+                log('✗ Status check error:', error.message);
+                
+                if (checkCount >= MAX_CHECKS) {
+                    stopChecking();
+                    showError('Network error during verification');
+                }
             }
         }
         
@@ -354,11 +395,10 @@
             statusDiv.style.display = 'block';
             statusDiv.className = 'status success';
             statusDiv.innerHTML = `
-                <h3 style="margin-bottom: 15px; font-size: 20px;">✅ Payment Successful!</h3>
-                <p style="margin: 5px 0;"><strong>Amount:</strong> KES ${payment.amount}</p>
-                <p style="margin: 5px 0;"><strong>Phone:</strong> ${payment.phone_number}</p>
-                <p style="margin: 5px 0;"><strong>Transaction:</strong> ${currentTransactionCode}</p>
-                <p style="margin-top: 15px; font-size: 14px; color: #0c5460;">Your payment has been confirmed!</p>
+                <h3 style="margin-bottom: 15px;">✅ Payment Successful!</h3>
+                <p><strong>Amount:</strong> KES ${payment.amount}</p>
+                <p><strong>Phone:</strong> ${payment.phone_number}</p>
+                <p><strong>Transaction:</strong> ${currentTransactionCode}</p>
             `;
             newPaymentBtn.style.display = 'block';
         }
@@ -368,15 +408,14 @@
             statusDiv.style.display = 'block';
             statusDiv.className = 'status error';
             statusDiv.innerHTML = `
-                <h3 style="margin-bottom: 15px; font-size: 20px;">❌ Payment ${state}</h3>
-                <p style="margin: 5px 0;"><strong>Status:</strong> ${state}</p>
-                <p style="margin: 5px 0;"><strong>Amount:</strong> KES ${payment.amount}</p>
-                <p style="margin: 5px 0;"><strong>Transaction:</strong> ${currentTransactionCode}</p>
-                <p style="margin-top: 15px; font-size: 14px;">
-                    ${state === 'CANCELLED' ? 'You cancelled the payment on your phone.' : 
-                      state === 'FAILED' ? 'The payment failed. Please try again.' : 
-                      state === 'EXPIRED' ? 'Payment expired. You took too long to enter PIN.' :
-                      'The payment was rejected.'}
+                <h3 style="margin-bottom: 15px;">❌ Payment ${state}</h3>
+                <p><strong>Status:</strong> ${state}</p>
+                <p><strong>Transaction:</strong> ${currentTransactionCode}</p>
+                <p style="margin-top: 10px; font-size: 14px;">
+                    ${state === 'CANCELLED' ? 'You cancelled the payment.' : 
+                      state === 'FAILED' ? 'Payment failed. Please try again.' : 
+                      state === 'EXPIRED' ? 'Payment expired. Too long to enter PIN.' :
+                      'Payment was rejected.'}
                 </p>
             `;
             newPaymentBtn.style.display = 'block';
@@ -387,12 +426,9 @@
             statusDiv.style.display = 'block';
             statusDiv.className = 'status error';
             statusDiv.innerHTML = `
-                <h3 style="margin-bottom: 15px; font-size: 20px;">⏱️ Verification Timeout</h3>
-                <p style="margin: 5px 0;"><strong>Transaction:</strong> ${currentTransactionCode}</p>
-                <p style="margin-top: 15px; font-size: 14px;">
-                    Payment verification timed out after 3 minutes.<br><br>
-                    The payment may still be processing. Check your M-Pesa messages.
-                </p>
+                <h3 style="margin-bottom: 15px;">⏱️ Verification Timeout</h3>
+                <p><strong>Transaction:</strong> ${currentTransactionCode}</p>
+                <p style="margin-top: 10px;">Timed out after 3 minutes. Check M-Pesa messages.</p>
             `;
             newPaymentBtn.style.display = 'block';
         }
@@ -401,10 +437,7 @@
             processingState.classList.remove('show');
             statusDiv.style.display = 'block';
             statusDiv.className = 'status error';
-            statusDiv.innerHTML = `
-                <h3 style="margin-bottom: 15px; font-size: 20px;">❌ Error</h3>
-                <p>${message}</p>
-            `;
+            statusDiv.innerHTML = `<h3>❌ Error</h3><p>${message}</p>`;
             newPaymentBtn.style.display = 'block';
             stopChecking();
         }
@@ -418,6 +451,7 @@
             processingState.classList.remove('show');
             statusDiv.style.display = 'none';
             newPaymentBtn.style.display = 'none';
+            debugLog.classList.remove('show');
             
             mpesaForm.reset();
             document.getElementById('description').value = 'Test Payment';
