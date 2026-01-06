@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PayHero Payment Test</title>
+    <title>PayHero Payment</title>
     <style>
         * {
             margin: 0;
@@ -151,7 +151,7 @@
 <body>
     <div class="container">
         <h1>💳 PayHero Payment</h1>
-        <p class="subtitle">Test M-Pesa STK Push Integration</p>
+        <p class="subtitle">M-Pesa STK Push - Till 6253624</p>
         
         <form id="paymentForm">
             <div class="form-group">
@@ -201,7 +201,9 @@
     </div>
 
     <script>
-        const API_URL = 'https://payhero-api.onrender.com';
+        // ⚠️ IMPORTANT: Replace with YOUR Render API URL
+        const API_URL = 'https://payhero-api.onrender.com';  // UPDATE THIS!
+        
         let currentTransactionCode = null;
         
         const form = document.getElementById('paymentForm');
@@ -268,7 +270,7 @@
                 statusDiv.className = 'status error';
                 statusDiv.innerHTML = `
                     <strong>❌ Connection Error</strong><br><br>
-                    Make sure the Python API is running at ${API_URL}
+                    Make sure the API is running at ${API_URL}
                 `;
             } finally {
                 payBtn.disabled = false;
